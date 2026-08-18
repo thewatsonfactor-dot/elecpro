@@ -1,0 +1,17 @@
+{
+  "name": "elecpro",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "cd server && npm run dev",
+    "dev:client": "cd client && npm run dev",
+    "build": "cd client && npm run build && cd ../server && npm run build",
+    "start": "cd server && npm start",
+    "db:migrate": "cd server && npx prisma migrate dev",
+    "db:push": "cd server && npx prisma db push",
+    "lint": "concurrently \"cd client && npm run lint\" \"cd server && npm run lint\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}

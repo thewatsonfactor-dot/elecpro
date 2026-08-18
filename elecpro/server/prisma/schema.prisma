@@ -1,0 +1,86 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  company   String?
+  uei       String?
+  cage      String?
+  naics     String?  @default("238210")
+  phone     String?
+  address   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  takeoffSessions TakeoffSession[]
+  trackedBids     TrackedBid[]
+}
+
+model TakeoffSession {
+  id             String   @id @default(cuid())
+  userId         String
+  projectName    String?
+  summary        String?
+  generalFlags   String[] @default([])
+  sheetsUploaded String[] @default([])
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items TakeoffItem[]
+}
+
+model TakeoffItem {
+  id          String @id @default(cuid())
+  sessionId   String
+  itemCode    String // e.g. "W001", "F001"
+  category    String // Wire, Conduit, Fixtures, Devices, Panels & Gear, etc.
+  description String
+  quantity    Float
+  unit        String // LF, EA, LOT
+  confidence  Int    // 0-100
+  tier        String // high, review, manual
+  status      String @default("pending") // pending, approved, modified, rejected
+  userQty     Float?
+  unitCost    Float  @default(0)
+  notes       String @default("")
+
+  // Evidence JSON stored as a string (simpler than separate table for beta)
+  evidence String @default("{}") @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  session TakeoffSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
+
+model TrackedBid {
+  id                 String   @id @default(cuid())
+  userId             String
+  noticeId           String
+  title              String
+  department         String?
+  naicsCode          String?
+  responseDeadline   DateTime?
+  postedDate         DateTime?
+  typeOfSetAside     String?
+  baseType           String?
+  state              String?
+  city               String?
+  description        String?  @db.Text
+  uiLink             String?
+  createdAt          DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, noticeId])
+}
